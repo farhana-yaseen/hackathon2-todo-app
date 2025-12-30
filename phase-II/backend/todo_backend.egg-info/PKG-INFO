@@ -1,0 +1,72 @@
+Metadata-Version: 2.4
+Name: todo_backend
+Version: 0.1.0
+Summary: FastAPI backend for Phase II Full-Stack Todo Application
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.109.0
+Requires-Dist: uvicorn[standard]>=0.27.0
+Requires-Dist: sqlmodel>=0.0.14
+Requires-Dist: psycopg2-binary>=2.9.9
+Requires-Dist: pyjwt>=2.8.0
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: pydantic>=2.5.0
+Requires-Dist: pydantic-settings>=2.1.0
+Requires-Dist: passlib[bcrypt]>=1.7.4
+Requires-Dist: email-validator>=2.1.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
+Requires-Dist: httpx>=0.26.0; extra == "dev"
+Requires-Dist: mypy>=1.8.0; extra == "dev"
+Requires-Dist: ruff>=0.2.0; extra == "dev"
+
+# Todo Backend
+
+FastAPI backend for Phase II Full-Stack Todo Application.
+
+## Quick Start
+
+1. **Install dependencies:**
+   ```bash
+   uv sync
+   ```
+
+2. **Configure environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your DATABASE_URL and BETTER_AUTH_SECRET
+   ```
+
+3. **Run the server:**
+   ```bash
+   uv run uvicorn backend.src.api.main:app --reload
+   ```
+
+4. **Open API docs:**
+   - Swagger UI: http://localhost:8000/docs
+   - ReDoc: http://localhost:8000/redoc
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | Neon PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | JWT secret for authentication |
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── api/
+│   │   ├── main.py         # FastAPI app entry point
+│   │   ├── dependencies.py # DB and auth dependencies
+│   │   └── routes/
+│   │       └── tasks.py    # Task CRUD endpoints
+│   ├── models/
+│   │   └── task.py         # Task SQLModel
+│   └── tests/
+├── pyproject.toml
+└── .env.example
+```
