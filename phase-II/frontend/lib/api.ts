@@ -16,6 +16,9 @@ export interface Task {
   title: string;
   description: string | null;
   completed: boolean;
+  due_date: string | null;
+  reminder_enabled: boolean;
+  category: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,6 +34,19 @@ export interface TaskListResponse {
 export interface SuccessResponse {
   success: boolean;
   message: string;
+}
+
+export interface CategoryStat {
+  category: string;
+  count: number;
+}
+
+export interface StatsResponse {
+  total_tasks: number;
+  completed_tasks: number;
+  active_tasks: number;
+  overdue_tasks: number;
+  category_stats: CategoryStat[];
 }
 
 /**
@@ -96,6 +112,13 @@ class ApiClient {
   // ========== Task Endpoints ==========
 
   /**
+   * Get task statistics for the current user
+   */
+  async getTaskStats(): Promise<StatsResponse> {
+    return this.request<StatsResponse>("/api/tasks/stats");
+  }
+
+  /**
    * Get all tasks for the current user
    */
   async getTasks(): Promise<TaskListResponse> {
@@ -112,7 +135,13 @@ class ApiClient {
   /**
    * Create a new task
    */
-  async createTask(data: { title: string; description?: string }): Promise<Task> {
+  async createTask(data: {
+    title: string;
+    description?: string;
+    due_date?: string | null;
+    reminder_enabled?: boolean;
+    category?: string | null;
+  }): Promise<Task> {
     return this.request<Task>("/api/tasks", {
       method: "POST",
       body: JSON.stringify(data),
@@ -124,7 +153,13 @@ class ApiClient {
    */
   async updateTask(
     id: number,
-    data: { title?: string; description?: string }
+    data: {
+      title?: string;
+      description?: string;
+      due_date?: string | null;
+      reminder_enabled?: boolean;
+      category?: string | null;
+    }
   ): Promise<Task> {
     return this.request<Task>(`/api/tasks/${id}`, {
       method: "PUT",

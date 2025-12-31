@@ -4,25 +4,66 @@ import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TaskForm } from "@/components/TaskForm";
 import { TaskList } from "@/components/TaskList";
-import { api, Task } from "@/lib/api";
+import { CalendarView } from "@/components/CalendarView";
+import { DashboardStats } from "@/components/DashboardStats";
+import { api, Task, StatsResponse } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth-client";
+import { exportTasksToCSV } from "@/lib/csv-export";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"created" | "due">("created");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [stats, setStats] = useState<StatsResponse | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [view, setView] = useState<"list" | "calendar">("list");
+
+  const categories = ["Work", "Personal", "Shopping", "Health", "Education", "Other"];
 
   async function fetchTasks() {
     try {
-      const response = await api.getTasks();
-      setTasks(response.tasks);
+      const tasksResponse = await api.getTasks();
+      setTasks(tasksResponse.tasks);
+
+      setIsStatsLoading(true);
+      const statsResponse = await api.getTaskStats();
+      setStats(statsResponse);
     } catch (error) {
-      console.error("Failed to fetch tasks:", error);
+      console.error("Failed to fetch tasks or stats:", error);
     } finally {
       setIsLoading(false);
+      setIsStatsLoading(false);
     }
   }
+
+  const filteredTasks = tasks
+    .filter((task) => {
+      const matchesFilter =
+        filter === "active" ? !task.completed :
+        filter === "completed" ? task.completed :
+        true;
+
+      const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesCategory =
+        selectedCategory === "all" || task.category === selectedCategory;
+
+      return matchesFilter && matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      if (sortBy === "due") {
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      }
+      // Default: sort by creation time (newest first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 
   useEffect(() => {
     async function init() {
@@ -86,12 +127,130 @@ export default function Home() {
             />
           </div>
           <div className="md:col-span-2">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Your Tasks</h2>
-            <TaskList
-              tasks={tasks}
-              onTaskUpdated={fetchTasks}
-              onEditClick={(task) => setEditingTask(task)}
-            />
+            <DashboardStats stats={stats} isLoading={isStatsLoading} />
+
+            <div className="space-y-6 mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-semibold text-gray-900">Your Tasks</h2>
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setView("list")}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
+                        view === "list" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                      List
+                    </button>
+                    <button
+                      onClick={() => setView("calendar")}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
+                        view === "calendar" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Calendar
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setFilter("all")}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                        filter === "all" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      All
+                    </button>
+                    <button
+                      onClick={() => setFilter("active")}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                        filter === "active" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Active
+                    </button>
+                    <button
+                      onClick={() => setFilter("completed")}
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                        filter === "completed" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Completed
+                    </button>
+                  </div>
+
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as "created" | "due")}
+                    className="block w-full sm:w-auto pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-gray-100 border-none font-medium text-gray-700"
+                  >
+                    <option value="created">Newest First</option>
+                    <option value="due">Due Date</option>
+                  </select>
+
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="block w-full sm:w-auto pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-gray-100 border-none font-medium text-gray-700"
+                  >
+                    <option value="all">All Categories</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={() => exportTasksToCSV(filteredTasks)}
+                    disabled={filteredTasks.length === 0}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    title="Export tasks to CSV"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export CSV
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search tasks by title..."
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {view === "list" ? (
+              <TaskList
+                tasks={filteredTasks}
+                onTaskUpdated={fetchTasks}
+                onEditClick={(task) => setEditingTask(task)}
+              />
+            ) : (
+              <CalendarView
+                tasks={filteredTasks}
+                onTaskUpdated={fetchTasks}
+                onEditClick={(task) => setEditingTask(task)}
+              />
+            )}
           </div>
         </div>
       </div>

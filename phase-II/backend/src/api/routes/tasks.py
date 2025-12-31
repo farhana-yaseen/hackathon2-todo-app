@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from sqlmodel import Session, select, and_
+from sqlmodel import Session, select, and_, func
 
 from models.task import Task
 from api.dependencies import (
@@ -29,12 +29,18 @@ class TaskCreate(BaseModel):
     """Request model for creating a new task."""
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
+    due_date: Optional[datetime] = None
+    reminder_enabled: bool = False
+    category: Optional[str] = Field(None, max_length=50)
 
 
 class TaskUpdate(BaseModel):
     """Request model for updating a task."""
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
+    due_date: Optional[datetime] = None
+    reminder_enabled: Optional[bool] = None
+    category: Optional[str] = Field(None, max_length=50)
 
 
 class TaskResponse(BaseModel):
@@ -44,6 +50,9 @@ class TaskResponse(BaseModel):
     title: str
     description: Optional[str]
     completed: bool
+    due_date: Optional[datetime]
+    reminder_enabled: bool
+    category: Optional[str]
     created_at: datetime
     updated_at: datetime
 
@@ -63,12 +72,80 @@ class SuccessResponse(BaseModel):
     message: str
 
 
+class CategoryStat(BaseModel):
+    """Stat for a single category."""
+    category: str
+    count: int
+
+
+class StatsResponse(BaseModel):
+    """Response model for task statistics."""
+    total_tasks: int
+    completed_tasks: int
+    active_tasks: int
+    overdue_tasks: int
+    category_stats: List[CategoryStat]
+
+
 # ========== Router ==========
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 
 # ========== Endpoints ==========
+
+@router.get("/stats", response_model=StatsResponse)
+async def get_task_stats(
+    user: AuthenticatedUser = Depends(require_auth),
+    session: Session = Depends(get_session),
+) -> StatsResponse:
+    """Get statistics for the authenticated user's tasks."""
+    now = datetime.utcnow()
+
+    # Total tasks
+    total_query = select(func.count(Task.id)).where(Task.user_id == user.user_id)
+    total_tasks = session.exec(total_query).one()
+
+    # Completed tasks
+    completed_query = select(func.count(Task.id)).where(
+        and_(Task.user_id == user.user_id, Task.completed == True)
+    )
+    completed_tasks = session.exec(completed_query).one()
+
+    # Active tasks
+    active_tasks = total_tasks - completed_tasks
+
+    # Overdue tasks
+    overdue_query = select(func.count(Task.id)).where(
+        and_(
+            Task.user_id == user.user_id,
+            Task.completed == False,
+            Task.due_date < now
+        )
+    )
+    overdue_tasks = session.exec(overdue_query).one()
+
+    # Category stats
+    category_query = (
+        select(Task.category, func.count(Task.id))
+        .where(Task.user_id == user.user_id)
+        .group_by(Task.category)
+    )
+    category_results = session.exec(category_query).all()
+
+    category_stats = [
+        CategoryStat(category=cat if cat else "No Category", count=count)
+        for cat, count in category_results
+    ]
+
+    return StatsResponse(
+        total_tasks=total_tasks,
+        completed_tasks=completed_tasks,
+        active_tasks=active_tasks,
+        overdue_tasks=overdue_tasks,
+        category_stats=category_stats,
+    )
+
 
 @router.get("", response_model=TaskListResponse)
 async def list_tasks(
@@ -106,6 +183,9 @@ async def create_task(
         user_id=user.user_id,
         title=task_data.title,
         description=task_data.description,
+        due_date=task_data.due_date,
+        reminder_enabled=task_data.reminder_enabled,
+        category=task_data.category,
     )
 
     session.add(task)
@@ -174,6 +254,12 @@ async def update_task(
         task.title = task_data.title
     if task_data.description is not None:
         task.description = task_data.description
+    if task_data.due_date is not None:
+        task.due_date = task_data.due_date
+    if task_data.reminder_enabled is not None:
+        task.reminder_enabled = task_data.reminder_enabled
+    if task_data.category is not None:
+        task.category = task_data.category
 
     task.updated_at = datetime.utcnow()
 
