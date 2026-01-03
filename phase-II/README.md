@@ -1,156 +1,215 @@
-# Todo CLI
+# Todo App - Phase II
 
-A simple in-memory command-line todo application written in Python.
+A full-stack todo application with user authentication and real-time synchronization.
+
+## Project Overview
+
+This is a monorepo containing a Next.js 14 frontend and FastAPI backend, following spec-driven development practices with GitHub Spec-Kit.
+
+## Tech Stack
+
+### Frontend
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Better Auth** - Authentication
+- **React 19**
+
+### Backend
+- **FastAPI** - Modern Python web framework
+- **SQLModel** - SQL database ORM
+- **PostgreSQL** (Neon) - Database
+- **JWT** - Token-based authentication
+- **Pydantic** - Data validation
+- **Python 3.13+**
 
 ## Features
 
-- Create tasks with titles and descriptions
-- View all tasks with status indicators
+- User authentication (signup/login)
+- Create, read, update, delete tasks
 - Mark tasks as complete/pending
-- Update task titles and descriptions
-- Delete tasks
-- **Important**: Tasks are stored in memory only - they will be lost when you exit!
-
-## Installation
-
-```bash
-# Install dependencies
-pip install -e .
-```
-
-## Usage
-
-Run the application:
-
-```bash
-todo-cli
-```
-
-You'll see a menu of options:
-
-```
---- TODO APPLICATION ---
-1. View Tasks
-2. Add Task
-3. Update Task
-4. Delete Task
-5. Toggle Complete
-6. Exit
-```
-
-### 1. View Tasks
-
-Shows all tasks with their ID, status, title, and description.
-
-Status indicators:
-- `[ ]` - Pending task
-- `[x]` - Complete task
-
-Example output:
-```
-[   1] [ ] Buy groceries
-    Description: Milk, bread, eggs
-```
-
-### 2. Add Task
-
-Create a new task.
-
-Example:
-```
-Title: Buy groceries
-Description: Milk, bread, eggs
-```
-
-### 3. Update Task
-
-Update an existing task's title and/or description.
-
-Example:
-```
-Enter task ID to update: 1
-New title (press Enter to keep current):
-New description (press Enter to keep current): Milk, bread, eggs, butter
-```
-
-### 4. Delete Task
-
-Remove a task by ID.
-
-Example:
-```
-Enter task ID to delete: 1
-```
-
-### 5. Toggle Complete
-
-Mark a task as complete or pending.
-
-Example:
-```
-Enter task ID to toggle: 1
-```
-
-### 6. Exit
-
-Exit the application with a confirmation prompt.
-
-## Important Notes
-
-### Data Loss Warning
-
-**This application stores all tasks in memory only.**
-
-When you exit the application, all tasks will be permanently lost.
-
-This is by design - it's a simple, lightweight todo CLI for temporary task tracking during a single session.
-
-## Development
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest tests/
-
-# Run with coverage
-pytest tests/ --cov=src/todo_cli --cov-report=term-missing
-```
-
-### Type Checking
-
-```bash
-# Run mypy type checking
-cd src && python -m mypy todo_cli --explicit-package-bases
-```
-
-### Linting
-
-```bash
-# Run ruff
-ruff check src/todo_cli
-
-# Format code
-ruff format src/todo_cli
-```
+- Persistent storage with PostgreSQL
+- RESTful API design
+- Type-safe TypeScript frontend
+- Modern responsive UI
 
 ## Project Structure
 
 ```
-src/todo_cli/
-  models/task.py          - Task dataclass with validation
-  core/
-    exceptions.py        - Custom exception hierarchy
-    task_manager.py     - Business logic layer
-  cli/
-    formatter.py        - Output formatting
-    interface.py        - Menu-driven CLI interface
-  __main__.py         - Application entry point
+phase-II/
+├── frontend/          # Next.js application
+│   ├── app/          # Next.js pages and layouts
+│   ├── components/   # Reusable UI components
+│   └── lib/          # API client and utilities
+├── backend/          # FastAPI application
+│   ├── src/
+│   │   ├── api/     # API route handlers
+│   │   └── models/  # Database models
+│   └── tests/       # Backend tests
+└── specs/           # Specification documents
 ```
 
-## Tech Stack
+## Getting Started
 
+### Prerequisites
+
+- Node.js 20+ and npm
 - Python 3.13+
-- pytest - Testing
-- mypy - Type checking
-- ruff - Linting and formatting
+- PostgreSQL database (or Neon account)
+
+### Environment Setup
+
+1. **Backend Environment Variables**
+
+Create `backend/.env`:
+```env
+DATABASE_URL=postgresql://user:password@host/dbname
+SECRET_KEY=your-secret-key-here
+```
+
+2. **Frontend Environment Variables**
+
+Create `frontend/.env.local`:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### Installation
+
+#### Backend Setup
+
+```bash
+cd backend
+pip install -e .
+```
+
+#### Frontend Setup
+
+```bash
+cd frontend
+npm install
+```
+
+## Running the Application
+
+### Development Mode
+
+**Backend (Terminal 1):**
+```bash
+cd backend
+uvicorn main:app --reload --port 8000
+```
+
+**Frontend (Terminal 2):**
+```bash
+cd frontend
+npm run dev
+```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Using Docker Compose (Alternative)
+
+```bash
+docker-compose up
+```
+
+## Development Guidelines
+
+### Backend Development
+
+See [backend/CLAUDE.md](backend/CLAUDE.md) for:
+- API conventions
+- Database patterns
+- Code standards
+
+### Frontend Development
+
+See [frontend/CLAUDE.md](frontend/CLAUDE.md) for:
+- Component patterns
+- API client usage
+- Styling guidelines
+
+### Spec-Driven Development
+
+This project follows spec-driven development:
+
+1. **Read specs first**: Check `specs/` directory before implementing
+2. **Reference specs**: Use `@specs/features/[feature].md` syntax
+3. **Update specs**: Keep specifications in sync with implementation
+
+Spec organization:
+- `specs/features/` - Feature requirements
+- `specs/api/` - API endpoints and contracts
+- `specs/database/` - Database schema
+- `specs/ui/` - UI components and pages
+
+## Testing
+
+### Backend Tests
+
+```bash
+cd backend
+pytest tests/
+
+# With coverage
+pytest tests/ --cov=src --cov-report=term-missing
+```
+
+### Frontend Tests
+
+```bash
+cd frontend
+npm test
+```
+
+## Code Quality
+
+### Backend
+
+```bash
+# Type checking
+mypy src/
+
+# Linting
+ruff check src/
+
+# Format code
+ruff format src/
+```
+
+### Frontend
+
+```bash
+# Linting
+npm run lint
+
+# Type checking
+npm run type-check
+```
+
+## API Documentation
+
+Once the backend is running, visit:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+## Contributing
+
+1. Check existing specs in `specs/` directory
+2. Follow the development guidelines in CLAUDE.md files
+3. Write tests for new features
+4. Ensure code quality checks pass
+
+## Important Notes
+
+- **Environment Files**: Never commit `.env` files to version control
+- **Database**: Ensure PostgreSQL is running before starting the backend
+- **API URL**: Update `NEXT_PUBLIC_API_URL` in frontend `.env.local` if backend runs on different port
+
+## License
+
+This project is part of a hackathon submission.

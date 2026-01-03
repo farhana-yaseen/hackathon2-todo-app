@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { signOut, getCurrentUser as getUserFromClient, getToken } from "@/lib/auth-client";
 import { checkNotificationSupport, subscribeToPush, unsubscribeFromPush } from "@/lib/push";
+import { useTheme } from "next-themes";
+import { Sun, Moon } from "lucide-react";
 
 interface User {
   id: string;
@@ -15,6 +17,7 @@ export function Navbar() {
   const [isLoading, setIsLoading] = useState(true);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [isPushSupported, setIsPushSupported] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     async function init() {
@@ -72,6 +75,14 @@ export function Navbar() {
             <h1 className="text-xl font-bold text-gray-900">Todo App</h1>
           </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Toggle Theme"
+            >
+              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
             {isLoading ? (
               <span className="text-gray-500">Loading...</span>
             ) : user ? (
@@ -90,8 +101,17 @@ export function Navbar() {
                   </button>
                 )}
                 <span className="text-sm text-gray-600">
-                  {user.name} ({user.email})
+                  {user.name}
                 </span>
+                <a
+                  href="/profile"
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Profile & Settings"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </a>
                 <button
                   onClick={handleSignOut}
                   className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"

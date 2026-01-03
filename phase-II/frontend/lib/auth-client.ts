@@ -4,6 +4,8 @@
  * This module provides client-safe authentication functions
  * that can be used in browser context.
  */
+import { setAuthToken, clearAuthToken } from "./api";
+
 const API_URL = typeof window !== "undefined"
   ? (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000")
   : "";
@@ -37,6 +39,12 @@ export async function signIn(email: string, password: string): Promise<Session |
     }
 
     const data = await response.json();
+
+    // Store token in session storage for API requests
+    if (data.token) {
+      setAuthToken(data.token);
+    }
+
     return data;
   } catch (error) {
     console.error("Sign in error:", error);
@@ -66,6 +74,12 @@ export async function signUp(
     }
 
     const data = await response.json();
+
+    // Store token in session storage for API requests
+    if (data.token) {
+      setAuthToken(data.token);
+    }
+
     return data;
   } catch (error) {
     console.error("Sign up error:", error);
@@ -82,8 +96,12 @@ export async function signOut(): Promise<void> {
       method: "POST",
       credentials: "include",
     });
+
+    // Clear token from session storage
+    clearAuthToken();
   } catch {
-    // Ignore errors
+    // Clear token anyway
+    clearAuthToken();
   }
 }
 

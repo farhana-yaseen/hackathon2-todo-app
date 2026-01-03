@@ -50,20 +50,55 @@ export interface StatsResponse {
 }
 
 /**
- * Get the JWT token from Better Auth session
+ * Get the JWT token from session storage or session endpoint
+ * The backend sets the token as an HTTP-only cookie and also returns it in the response
  */
 async function getAuthToken(): Promise<string | null> {
+  // First try to get from sessionStorage (faster)
+  if (typeof window !== "undefined") {
+    const storedToken = sessionStorage.getItem("auth_token");
+    if (storedToken) {
+      return storedToken;
+    }
+  }
+
+  // If not in storage, fetch from session endpoint
   try {
     const response = await fetch(`${API_BASE_URL}/api/auth/session`, {
       credentials: "include",
     });
     if (response.ok) {
       const data = await response.json();
-      return data.token || null;
+      const token = data.token || null;
+
+      // Store for future requests
+      if (token && typeof window !== "undefined") {
+        sessionStorage.setItem("auth_token", token);
+      }
+
+      return token;
     }
     return null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Set the auth token in session storage (called after sign-in/sign-up)
+ */
+export function setAuthToken(token: string): void {
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("auth_token", token);
+  }
+}
+
+/**
+ * Clear the auth token from session storage (called after sign-out)
+ */
+export function clearAuthToken(): void {
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("auth_token");
   }
 }
 
@@ -182,6 +217,51 @@ class ApiClient {
   async deleteTask(id: number): Promise<SuccessResponse> {
     return this.request<SuccessResponse>(`/api/tasks/${id}`, {
       method: "DELETE",
+    });
+  }
+
+  // ========== Profile Endpoints ==========
+
+  /**
+   * Get current user profile
+   */
+  async getProfile(): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    created_at: string;
+  }> {
+    return this.request(`/api/auth/profile`);
+  }
+
+  /**
+   * Update user profile
+   */
+  async updateProfile(data: {
+    name?: string;
+    email?: string;
+  }): Promise<{
+    id: string;
+    email: string;
+    name: string;
+    message: string;
+  }> {
+    return this.request(`/api/auth/profile`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(data: {
+    current_password: string;
+    new_password: string;
+  }): Promise<{ message: string }> {
+    return this.request(`/api/auth/change-password`, {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   }
 }

@@ -11,7 +11,34 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [resendMessage, setResendMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const router = useRouter();
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  async function handleResend() {
+    setIsResending(true);
+    setResendMessage(null);
+    try {
+      const response = await fetch(`${API_URL}/api/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setResendMessage({ type: "success", text: "Verification email resent!" });
+      } else {
+        setResendMessage({ type: "error", text: data.detail || "Failed to resend email." });
+      }
+    } catch (err) {
+      setResendMessage({ type: "error", text: "Network error. Try again later." });
+    } finally {
+      setIsResending(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,12 +47,56 @@ export default function SignUpPage() {
 
     const result = await signUp(email, password, name);
     if (result) {
-      router.push("/");
-      router.refresh();
+      setIsSubmitted(true);
+      setIsLoading(false);
     } else {
       setError("Failed to create account. Email might already be in use.");
       setIsLoading(false);
     }
+  }
+
+  if (isSubmitted) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="h-16 w-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 mx-auto text-2xl">
+            ✉️
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
+          <p className="text-gray-600 mb-8">
+            We've sent a verification link to <span className="font-semibold">{email}</span>.
+            Please check your inbox and click the link to activate your account.
+          </p>
+
+          {resendMessage && (
+            <div className={`mb-4 p-2 text-xs rounded border ${
+              resendMessage.type === "success"
+              ? "bg-green-50 text-green-700 border-green-200"
+              : "bg-red-50 text-red-700 border-red-200"
+            }`}>
+              {resendMessage.text}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Link
+              href="/auth/sign-in"
+              className="w-full inline-block py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+            >
+              Go to Sign In
+            </Link>
+
+            <button
+              onClick={handleResend}
+              disabled={isResending}
+              className="w-full py-2 px-4 text-sm font-medium text-blue-600 hover:text-blue-500 disabled:opacity-50 transition-colors"
+            >
+              {isResending ? "Resending..." : "Didn't receive an email? Resend"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -65,7 +136,7 @@ export default function SignUpPage() {
           </div>
 
           <div>
-            <label htmlFor="password" name="password" className="block text-sm font-medium text-gray-700">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
             <input
               type="password"
               id="password"

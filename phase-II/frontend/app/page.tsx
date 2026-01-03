@@ -112,7 +112,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -132,12 +132,12 @@ export default function Home() {
             <div className="space-y-6 mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-semibold text-gray-900">Your Tasks</h2>
-                  <div className="flex bg-gray-100 rounded-lg p-1">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Your Tasks</h2>
+                  <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                     <button
                       onClick={() => setView("list")}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
-                        view === "list" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        view === "list" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -148,7 +148,7 @@ export default function Home() {
                     <button
                       onClick={() => setView("calendar")}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
-                        view === "calendar" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        view === "calendar" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,11 +159,11 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <div className="flex bg-gray-100 rounded-lg p-1">
+                  <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                     <button
                       onClick={() => setFilter("all")}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                        filter === "all" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        filter === "all" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
                       All
@@ -171,7 +171,7 @@ export default function Home() {
                     <button
                       onClick={() => setFilter("active")}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                        filter === "active" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        filter === "active" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
                       Active
@@ -179,7 +179,7 @@ export default function Home() {
                     <button
                       onClick={() => setFilter("completed")}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                        filter === "completed" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                        filter === "completed" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
                       Completed
@@ -189,7 +189,7 @@ export default function Home() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as "created" | "due")}
-                    className="block w-full sm:w-auto pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-gray-100 border-none font-medium text-gray-700"
+                    className="block w-full sm:w-auto pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-gray-100 dark:bg-gray-800 border-none font-medium text-gray-700 dark:text-gray-200"
                   >
                     <option value="created">Newest First</option>
                     <option value="due">Due Date</option>
@@ -198,7 +198,7 @@ export default function Home() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="block w-full sm:w-auto pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-gray-100 border-none font-medium text-gray-700"
+                    className="block w-full sm:w-auto pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg bg-gray-100 dark:bg-gray-800 border-none font-medium text-gray-700 dark:text-gray-200"
                   >
                     <option value="all">All Categories</option>
                     {categories.map((cat) => (
@@ -211,7 +211,7 @@ export default function Home() {
                   <button
                     onClick={() => exportTasksToCSV(filteredTasks)}
                     disabled={filteredTasks.length === 0}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                     title="Export tasks to CSV"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -231,7 +231,7 @@ export default function Home() {
                 <input
                   type="text"
                   placeholder="Search tasks by title..."
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-700 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
