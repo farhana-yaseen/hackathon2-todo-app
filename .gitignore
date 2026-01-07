@@ -70,5 +70,3 @@ pnpm-lock.yaml
 *.bak
 *.tmp
 .ruff_cache/
-
-/backend

@@ -103,6 +103,11 @@ export async function signOut(): Promise<void> {
     // Clear token anyway
     clearAuthToken();
   }
+
+  // Dispatch a custom event to notify all components about the sign-out
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("authStateChanged"));
+  }
 }
 
 /**

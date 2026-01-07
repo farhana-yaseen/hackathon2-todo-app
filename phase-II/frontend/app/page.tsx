@@ -23,6 +23,21 @@ export default function Home() {
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [view, setView] = useState<"list" | "calendar">("list");
 
+  // Extract token from URL and store it when component mounts
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token && typeof window !== 'undefined') {
+      // Store token in sessionStorage for API calls
+      sessionStorage.setItem('auth_token', token);
+
+      // Remove token from URL to prevent it from being visible in address bar
+      const newUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
+
   const categories = ["Work", "Personal", "Shopping", "Health", "Education", "Other"];
 
   async function fetchTasks() {
@@ -76,6 +91,24 @@ export default function Home() {
       }
     }
     init();
+
+    // Listen for auth state changes (e.g., sign out from other components)
+    const handleAuthChange = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      if (currentUser) {
+        await fetchTasks();
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    window.addEventListener("authStateChanged", handleAuthChange);
+
+    // Clean up event listener on unmount
+    return () => {
+      window.removeEventListener("authStateChanged", handleAuthChange);
+    };
   }, []);
 
   if (isLoading) {
@@ -136,7 +169,7 @@ export default function Home() {
                   <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                     <button
                       onClick={() => setView("list")}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 cursor-pointer ${
                         view === "list" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
@@ -147,7 +180,7 @@ export default function Home() {
                     </button>
                     <button
                       onClick={() => setView("calendar")}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 ${
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors flex items-center gap-1 cursor-pointer ${
                         view === "calendar" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
@@ -162,7 +195,7 @@ export default function Home() {
                   <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
                     <button
                       onClick={() => setFilter("all")}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors cursor-pointer ${
                         filter === "all" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
@@ -170,7 +203,7 @@ export default function Home() {
                     </button>
                     <button
                       onClick={() => setFilter("active")}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors cursor-pointer ${
                         filter === "active" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
@@ -178,7 +211,7 @@ export default function Home() {
                     </button>
                     <button
                       onClick={() => setFilter("completed")}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-colors cursor-pointer ${
                         filter === "completed" ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                       }`}
                     >
@@ -211,7 +244,7 @@ export default function Home() {
                   <button
                     onClick={() => exportTasksToCSV(filteredTasks)}
                     disabled={filteredTasks.length === 0}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 cursor-pointer"
                     title="Export tasks to CSV"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

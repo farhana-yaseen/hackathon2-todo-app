@@ -108,7 +108,7 @@ export function TaskItem({ task, onTaskUpdated, onEditClick }: TaskItemProps) {
         <button
           onClick={toggleComplete}
           disabled={isLoading}
-          className={`mt-1 flex-shrink-0 w-5 h-5 rounded border-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
+          className={`mt-1 flex-shrink-0 w-5 h-5 rounded border-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer ${
             task.completed
               ? "bg-green-500 border-green-500 text-white"
               : "border-gray-300 hover:border-gray-400"
@@ -164,14 +164,14 @@ export function TaskItem({ task, onTaskUpdated, onEditClick }: TaskItemProps) {
           <button
             onClick={() => onEditClick(task)}
             disabled={isLoading}
-            className="px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+            className="px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors cursor-pointer"
           >
             Edit
           </button>
           <button
             onClick={deleteTask}
             disabled={isLoading}
-            className="px-3 py-1 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+            className="px-3 py-1 text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors cursor-pointer"
           >
             Delete
           </button>

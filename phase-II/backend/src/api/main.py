@@ -89,7 +89,7 @@ app.include_router(notifications_router)
 
 # Initialize database tables at module load time (dev mode: drop and recreate)
 engine = get_engine()
-SQLModel.metadata.drop_all(engine)
+# SQLModel.metadata.drop_all(engine)
 SQLModel.metadata.create_all(engine)
 logger.info("Database tables initialized (dropped and recreated)")
 

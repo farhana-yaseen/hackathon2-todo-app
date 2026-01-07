@@ -287,7 +287,7 @@ async def sign_up(
         key="auth_token",
         value=token,
         httponly=True,
-        secure=True,
+        secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
         samesite="lax",
         max_age=60 * 60 * 24 * 7,
     )
@@ -368,7 +368,7 @@ async def sign_in(
         key="auth_token",
         value=token,
         httponly=True,
-        secure=True,
+        secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
         samesite="lax",
         max_age=60 * 60 * 24 * 7,
     )
@@ -389,7 +389,7 @@ async def sign_out(response: Response):
     response.delete_cookie(
         key="auth_token",
         httponly=True,
-        secure=True,
+        secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
         samesite="lax",
     )
     return {"message": "Signed out successfully"}
@@ -455,33 +455,37 @@ async def auth_callback(
             )
             db_session.add(user)
             db_session.commit()
-            session.refresh(user)
+            db_session.refresh(user)
 
         # Create JWT token
         token_str = create_access_token(user.id, user.email, user.name)
 
-        # Set cookie
-        response.set_cookie(
+        # Redirect to frontend
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        # Pass token in query param temporarily so frontend can catch it if needed,
+        # though the cookie is also set.
+        from fastapi.responses import RedirectResponse
+        redirect_response = RedirectResponse(url=f"{frontend_url}/?token={token_str}")
+
+        # Set the auth cookie on the redirect response
+        redirect_response.set_cookie(
             key="auth_token",
             value=token_str,
             httponly=True,
-            secure=True,
+            secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
             samesite="lax",
             max_age=60 * 60 * 24 * 7,
         )
 
-        # Redirect to frontend
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        # Pass token in query param temporarily so frontend can catch it if needed,
-        # though the cookie is already set.
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=f"{frontend_url}/?token={token_str}")
+        return redirect_response
 
     except Exception as e:
         logger.error(f"OAuth error: {str(e)}")
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
         from fastapi.responses import RedirectResponse
-        return RedirectResponse(url=f"{frontend_url}/auth/sign-in?error=OAuth failed")
+        redirect_response = RedirectResponse(url=f"{frontend_url}/auth/sign-in?error=OAuth failed")
+
+        return redirect_response
 
 
 @router.get("/session", response_model=SessionResponse)

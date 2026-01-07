@@ -100,7 +100,7 @@ export function CalendarView({ tasks, onTaskUpdated, onEditClick }: CalendarView
             <button
               onClick={() => exportTasksToCSV(tasksWithDates)}
               disabled={tasksWithDates.length === 0}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 cursor-pointer"
               title="Export visible tasks to CSV"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,7 +110,7 @@ export function CalendarView({ tasks, onTaskUpdated, onEditClick }: CalendarView
             </button>
             <button
               onClick={() => setShowDateRangePicker(!showDateRangePicker)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 cursor-pointer ${
                 isDateRangeActive
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -124,7 +124,7 @@ export function CalendarView({ tasks, onTaskUpdated, onEditClick }: CalendarView
             </button>
             <button
               onClick={prevMonth}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
               title="Previous month"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -133,7 +133,7 @@ export function CalendarView({ tasks, onTaskUpdated, onEditClick }: CalendarView
             </button>
             <button
               onClick={nextMonth}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
               title="Next month"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -174,14 +174,14 @@ export function CalendarView({ tasks, onTaskUpdated, onEditClick }: CalendarView
               <button
                 onClick={applyDateRange}
                 disabled={!dateRangeFilter.start || !dateRangeFilter.end}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 Apply Filter
               </button>
               {isDateRangeActive && (
                 <button
                   onClick={clearDateRange}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Clear
                 </button>
@@ -231,7 +231,7 @@ export function CalendarView({ tasks, onTaskUpdated, onEditClick }: CalendarView
                   <button
                     key={task.id}
                     onClick={() => onEditClick(task)}
-                    className={`w-full text-left px-2 py-1 text-[10px] leading-tight rounded border border-transparent truncate hover:shadow-sm transition-all ${
+                    className={`w-full text-left px-2 py-1 text-[10px] leading-tight rounded border border-transparent truncate hover:shadow-sm transition-all cursor-pointer ${
                       task.completed
                         ? "bg-gray-100 text-gray-400 line-through"
                         : (categoryColors[task.category || "Other"] || categoryColors.Other)

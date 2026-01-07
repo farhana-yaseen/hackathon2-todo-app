@@ -9,6 +9,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
 
 # Configure logging
@@ -53,6 +54,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add SessionMiddleware for OAuth
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "default-session-secret-change-in-production"))
 
 
 # Exception handlers
