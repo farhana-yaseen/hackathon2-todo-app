@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Todo App - Phase II",
+  title: "Todo App - Phase III",
   description: "Full-stack todo application with FastAPI and Next.js",
 };
 
