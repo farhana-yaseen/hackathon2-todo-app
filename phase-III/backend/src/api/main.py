@@ -1,6 +1,7 @@
+
 """FastAPI application main point.
 
-Phase II Full-Stack Todo Application - Backend
+Phase III Full-Stack Todo Application - Backend
 """
 import logging
 import os
@@ -33,7 +34,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
 # Create FastAPI application
 app = FastAPI(
     title="Todo API",
-    description="RESTful API for Phase II Full-Stack Todo Application",
+    description="RESTful API for Phase III Full-Stack Todo Application",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",

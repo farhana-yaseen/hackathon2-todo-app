@@ -293,7 +293,7 @@ class ChatService:
                 chat_history=cohere_messages[:-1],  # Exclude the current message
                 preamble=self.get_system_prompt(),
                 tools=self.get_available_tools(),
-                model="command-r-plus"
+                model="command-light"
             )
         except Exception as e:
             # Log the error for debugging
@@ -313,7 +313,7 @@ class ChatService:
                     preamble=self.get_system_prompt(),
                     tools=self.get_available_tools(),
                     tool_results=tool_results,
-                    model="command-r-plus"
+                    model="command-light"
                 )
             except Exception as e:
                 # Log the error for debugging
