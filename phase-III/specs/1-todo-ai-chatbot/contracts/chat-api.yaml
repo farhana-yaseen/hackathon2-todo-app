@@ -1,0 +1,133 @@
+# OpenAPI Contract for Todo AI Chatbot
+
+openapi: 3.0.0
+info:
+  title: Todo AI Chatbot API
+  version: 1.0.0
+  description: API for the Todo AI Chatbot functionality
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      summary: Send a message to the AI chatbot and receive a response
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user sending the message
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                conversation_id:
+                  type: integer
+                  description: ID of the conversation (optional, creates new if null)
+                  nullable: true
+                message:
+                  type: string
+                  description: The user's message to the AI
+                  example: "Add a task to buy groceries tomorrow"
+              required:
+                - message
+      responses:
+        '200':
+          description: Successful response from the AI
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation_id:
+                    type: integer
+                    description: ID of the conversation (newly created if not provided)
+                  response:
+                    type: string
+                    description: AI's response to the user's message
+                    example: "Done! I've added 'Buy groceries' to your list."
+                  action_taken:
+                    type: string
+                    description: Description of any action taken by the AI
+                    example: "Created task 'Buy groceries'"
+        '400':
+          description: Bad request - invalid input
+        '401':
+          description: Unauthorized - user_id not valid
+        '500':
+          description: Internal server error
+
+  /api/users/{user_id}/conversations:
+    get:
+      summary: Get list of user's conversations
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The ID of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of user's conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Conversation ID
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: When the conversation was created
+                    updated_at:
+                      type: string
+                      format: date-time
+                      description: When the conversation was last updated
+        '401':
+          description: Unauthorized
+
+  /api/conversations/{conversation_id}/messages:
+    get:
+      summary: Get messages from a specific conversation
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          description: The ID of the conversation
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of messages in the conversation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Message ID
+                    role:
+                      type: string
+                      description: Role of the message sender ('user' or 'assistant')
+                    content:
+                      type: string
+                      description: Content of the message
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: When the message was created
+        '404':
+          description: Conversation not found
+        '401':
+          description: Unauthorized
