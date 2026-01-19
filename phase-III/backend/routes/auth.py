@@ -496,7 +496,7 @@ async def get_session(request: Request):
     token = None
 
     # Try to get token from Authorization header first
-    if authorization and authorization.startswith("Bearer "):
+    if authorization and authorization.startswith("Bearer"):
         token = authorization[7:]
     else:
         # Try to get token from cookies

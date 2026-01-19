@@ -16,6 +16,7 @@ from db import (
     require_auth,
     get_session,
 )
+from websocket_manager import broadcast_task_update
 
 
 # ========== Pydantic Models ==========
@@ -187,6 +188,13 @@ async def create_task(
     session.commit()
     session.refresh(task)
 
+    # Broadcast the task creation to connected clients
+    await broadcast_task_update(
+        user.user_id,
+        "task_created",
+        TaskResponse.model_validate(task).model_dump()
+    )
+
     return TaskResponse.model_validate(task)
 
 
@@ -261,6 +269,13 @@ async def update_task(
     session.commit()
     session.refresh(task)
 
+    # Broadcast the task update to connected clients
+    await broadcast_task_update(
+        user.user_id,
+        "task_updated",
+        TaskResponse.model_validate(task).model_dump()
+    )
+
     return TaskResponse.model_validate(task)
 
 
@@ -296,6 +311,13 @@ async def toggle_complete(
     session.commit()
     session.refresh(task)
 
+    # Broadcast the task update to connected clients
+    await broadcast_task_update(
+        user.user_id,
+        "task_updated",  # Using task_updated since completion status changed
+        TaskResponse.model_validate(task).model_dump()
+    )
+
     return TaskResponse.model_validate(task)
 
 
@@ -324,8 +346,18 @@ async def delete_task(
             detail=f"Task {task_id} not found",
         )
 
+    # Get the task data before deletion to broadcast it
+    task_data = TaskResponse.model_validate(task).model_dump()
+
     session.delete(task)
     session.commit()
+
+    # Broadcast the task deletion to connected clients
+    await broadcast_task_update(
+        user.user_id,
+        "task_deleted",
+        task_data
+    )
 
     return SuccessResponse(
         success=True,

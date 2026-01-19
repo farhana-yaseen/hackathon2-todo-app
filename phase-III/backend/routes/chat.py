@@ -225,6 +225,9 @@ async def delete_conversation(
         for message in messages:
             session.delete(message)
 
+        # Commit the message deletions before deleting the conversation
+        session.commit()
+
         # Delete the conversation
         session.delete(conversation)
         session.commit()

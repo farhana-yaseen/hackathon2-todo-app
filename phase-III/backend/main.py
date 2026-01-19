@@ -7,7 +7,7 @@ import os
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
@@ -87,11 +87,27 @@ from routes import auth
 from routes.chat import router as chat_router
 from db import get_engine
 from sqlmodel import SQLModel
+from websocket_manager import manager, broadcast_task_update
 
 app.include_router(tasks_router)
 app.include_router(auth.router)
 app.include_router(notifications_router)
 app.include_router(chat_router)
+
+# WebSocket endpoint for real-time updates
+@app.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    await manager.connect(websocket, user_id)
+    try:
+        # Keep the connection alive - we only send from server to client
+        # The client doesn't need to send messages for real-time updates to work
+        while True:
+            # Wait for any data from client (this will raise WebSocketDisconnect if connection closes)
+            data = await websocket.receive_text()
+            # Optionally process any incoming messages if needed
+            # For real-time updates, we mostly just send from server to client
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
 
 # Initialize database tables at module load time
 engine = get_engine()
