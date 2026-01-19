@@ -45,6 +45,7 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",  # Next.js default port
     "http://127.0.0.1:3000",
+    "hackathon2-todo-app-three.vercel.app"
 ]
 
 app.add_middleware(
