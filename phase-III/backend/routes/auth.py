@@ -462,10 +462,9 @@ async def auth_callback(
 
         # Redirect to frontend
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        # Pass token in query param temporarily so frontend can catch it if needed,
-        # though the cookie is also set.
+        # Pass token in query param so frontend can catch it and store it
         from fastapi.responses import RedirectResponse
-        redirect_response = RedirectResponse(url=f"{frontend_url}/?token={token_str}")
+        redirect_response = RedirectResponse(url=f"{frontend_url}/auth/callback/{provider}?token={token_str}")
 
         # Set the auth cookie on the redirect response
         redirect_response.set_cookie(
