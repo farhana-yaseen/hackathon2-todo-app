@@ -2,12 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "@/contexts/SessionProvider";
+import { setAuthToken } from "@/lib/api";
 
 export default function OAuthCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refresh } = useSession();
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -16,10 +15,11 @@ export default function OAuthCallback() {
       // Store the token in sessionStorage for API calls
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('auth_token', token);
+        setAuthToken(token); // This will also store it in sessionStorage
       }
 
-      // Refresh the session to update the UI
-      refresh();
+      // Dispatch a custom event to notify other components about the auth state change
+      window.dispatchEvent(new Event('storage'));
 
       // Redirect to home page
       router.push('/');
@@ -28,7 +28,7 @@ export default function OAuthCallback() {
       // If no token, redirect to sign-in with error
       router.push('/auth/sign-in?error=Authentication failed');
     }
-  }, [searchParams, router, refresh]);
+  }, [searchParams, router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
