@@ -91,7 +91,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 def send_verification_email(email: str, token: str):
     """Send a real verification email via SMTP."""
-    verification_link = f"http://localhost:3000/auth/verify?token={token}"
+    verification_link = f"hackathon2-todo-app-three.vercel.app/auth/verify?token={token}"
 
     # Check if SMTP is configured
     if not SMTP_USER or not SMTP_PASSWORD:
@@ -140,7 +140,7 @@ def send_verification_email(email: str, token: str):
 
 def send_reset_password_email(email: str, token: str):
     """Send a password reset email via SMTP."""
-    reset_link = f"http://localhost:3000/auth/reset-password?token={token}"
+    reset_link = f"http://hackathon2-todo-app-three.vercel.app/auth/reset-password?token={token}"
 
     # Check if SMTP is configured
     if not SMTP_USER or not SMTP_PASSWORD:
@@ -398,7 +398,11 @@ async def sign_out(response: Response):
 @router.get("/login/{provider}")
 async def login_via_provider(provider: str, request: Request):
     """Initiate OAuth login flow."""
-    redirect_uri = request.url_for("auth_callback", provider=provider)
+    BACKEND_URL = os.getenv(
+        "BACKEND_URL",
+        "http://localhost:8000"
+    )
+    redirect_uri = f"{BACKEND_URL}/api/auth/callback/{provider}"
     # Note: Use a frontend callback URL if you want a cleaner separation,
     # but here we redirect directly through the backend callback.
     if provider == "google":
