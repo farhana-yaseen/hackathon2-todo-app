@@ -402,7 +402,16 @@ async def login_via_provider(provider: str, request: Request):
         "BACKEND_URL",
         "http://localhost:8000"
     )
+
+    # Ensure the redirect_uri uses HTTPS, especially important for reverse proxy setups like Hugging Face Spaces
+    if BACKEND_URL.startswith("http://"):
+        BACKEND_URL = "https://" + BACKEND_URL[7:]  # Replace http:// with https://
+    elif not BACKEND_URL.startswith("https://"):
+        BACKEND_URL = "https://" + BACKEND_URL  # Add https:// if neither is present
+
     redirect_uri = f"{BACKEND_URL}/api/auth/callback/{provider}"
+    print(f"OAuth redirect_uri for {provider}: {redirect_uri}")  # Debug logging
+
     # Note: Use a frontend callback URL if you want a cleaner separation,
     # but here we redirect directly through the backend callback.
     if provider == "google":

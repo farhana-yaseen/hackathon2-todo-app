@@ -10,6 +10,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from fastapi.responses import JSONResponse
 
 # Configure logging
@@ -55,6 +56,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add ProxyHeadersMiddleware to handle reverse proxy headers (important for HTTPS detection behind Hugging Face Spaces)
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Add SessionMiddleware for OAuth
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "default-session-secret-change-in-production"))
