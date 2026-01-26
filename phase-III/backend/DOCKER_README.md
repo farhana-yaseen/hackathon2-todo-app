@@ -35,4 +35,3 @@ The application expects to run on port 7860 as required by Hugging Face Spaces.
 - The Dockerfile uses Python 3.13 to match the project requirements
 - System dependencies for psycopg2 are installed during build
 - The application runs as a non-root user for security
-- Inside the container, the application code is placed in `/app` directory

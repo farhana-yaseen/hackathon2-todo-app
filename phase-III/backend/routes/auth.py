@@ -91,7 +91,8 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 def send_verification_email(email: str, token: str):
     """Send a real verification email via SMTP."""
-    verification_link = f"hackathon2-todo-app-three.vercel.app/auth/verify?token={token}"
+    frontend_url = os.getenv("FRONTEND_URL", "https://hackathon2-todo-app-three.vercel.app")
+    verification_link = f"{frontend_url.replace('https://', '')}/auth/verify?token={token}"
 
     # Check if SMTP is configured
     if not SMTP_USER or not SMTP_PASSWORD:
@@ -140,7 +141,8 @@ def send_verification_email(email: str, token: str):
 
 def send_reset_password_email(email: str, token: str):
     """Send a password reset email via SMTP."""
-    reset_link = f"http://hackathon2-todo-app-three.vercel.app/auth/reset-password?token={token}"
+    frontend_url = os.getenv("FRONTEND_URL", "https://hackathon2-todo-app-three.vercel.app")
+    reset_link = f"{frontend_url}/auth/reset-password?token={token}"
 
     # Check if SMTP is configured
     if not SMTP_USER or not SMTP_PASSWORD:
@@ -282,16 +284,20 @@ async def sign_up(
     # but normally we might wait for verification)
     token = create_access_token(user.id, user.email, user.name)
 
+    # Determine cookie settings based on environment
+    is_production = os.getenv("ENVIRONMENT") == "production"
+    secure_cookie = is_production
+    samesite_setting = "none" if is_production else "lax"  # Cross-origin requests need "none" in production
+
     # Set cookie
     response.set_cookie(
         key="auth_token",
         value=token,
         httponly=True,
-        secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
-        samesite="lax",
+        secure=secure_cookie,
+        samesite=samesite_setting,
         max_age=60 * 60 * 24 * 7,
     )
-
     return SignUpResponse(
         user={
             "id": user.id,
@@ -363,13 +369,18 @@ async def sign_in(
         user.name,
     )
 
+    # Determine cookie settings based on environment
+    is_production = os.getenv("ENVIRONMENT") == "production"
+    secure_cookie = is_production
+    samesite_setting = "none" if is_production else "lax"  # Cross-origin requests need "none" in production
+
     # Set cookie
     response.set_cookie(
         key="auth_token",
         value=token,
         httponly=True,
-        secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
-        samesite="lax",
+        secure=secure_cookie,
+        samesite=samesite_setting,
         max_age=60 * 60 * 24 * 7,
     )
 
@@ -386,11 +397,16 @@ async def sign_in(
 @router.post("/sign-out")
 async def sign_out(response: Response):
     """Clear the session cookie."""
+    # Determine cookie settings based on environment for consistency
+    is_production = os.getenv("ENVIRONMENT") == "production"
+    secure_cookie = is_production
+    samesite_setting = "none" if is_production else "lax"
+
     response.delete_cookie(
         key="auth_token",
         httponly=True,
-        secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
-        samesite="lax",
+        secure=secure_cookie,
+        samesite=samesite_setting,
     )
     return {"message": "Signed out successfully"}
 
@@ -398,16 +414,27 @@ async def sign_out(response: Response):
 @router.get("/login/{provider}")
 async def login_via_provider(provider: str, request: Request):
     """Initiate OAuth login flow."""
-    BACKEND_URL = os.getenv(
-        "BACKEND_URL",
-        "http://localhost:8000"
-    )
+    # Try to construct the backend URL based on the current request in proxy environments
+    if request.url.hostname and "huggingface" in request.url.hostname:
+        # Special handling for Hugging Face Spaces
+        scheme = "https"
+        hostname = request.url.hostname
+        port = ""
+        if request.url.port and request.url.port != 443:
+            port = f":{request.url.port}"
+        BACKEND_URL = f"{scheme}://{hostname}{port}"
+    else:
+        # Use environment variable or default
+        BACKEND_URL = os.getenv(
+            "BACKEND_URL",
+            f"{request.url.scheme}://{request.url.netloc}"
+        )
 
-    # Ensure the redirect_uri uses HTTPS, especially important for reverse proxy setups like Hugging Face Spaces
-    if BACKEND_URL.startswith("http://"):
-        BACKEND_URL = "https://" + BACKEND_URL[7:]  # Replace http:// with https://
-    elif not BACKEND_URL.startswith("https://"):
-        BACKEND_URL = "https://" + BACKEND_URL  # Add https:// if neither is present
+        # Ensure the redirect_uri uses HTTPS, especially important for reverse proxy setups like Hugging Face Spaces
+        if BACKEND_URL.startswith("http://"):
+            BACKEND_URL = "https://" + BACKEND_URL[7:]  # Replace http:// with https://
+        elif not BACKEND_URL.startswith("https://"):
+            BACKEND_URL = "https://" + BACKEND_URL  # Add https:// if neither is present
 
     redirect_uri = f"{BACKEND_URL}/api/auth/callback/{provider}"
     print(f"OAuth redirect_uri for {provider}: {redirect_uri}")  # Debug logging
@@ -473,19 +500,24 @@ async def auth_callback(
         # Create JWT token
         token_str = create_access_token(user.id, user.email, user.name)
 
-        # Redirect to frontend
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        # Redirect to frontend - use your Vercel URL
+        frontend_url = os.getenv("FRONTEND_URL", "https://hackathon2-todo-app-three.vercel.app")
         # Pass token in query param so frontend can catch it and store it
         from fastapi.responses import RedirectResponse
         redirect_response = RedirectResponse(url=f"{frontend_url}/auth/callback/{provider}?token={token_str}")
+
+        # Determine cookie settings based on environment
+        is_production = os.getenv("ENVIRONMENT") == "production"
+        secure_cookie = is_production
+        samesite_setting = "none" if is_production else "lax"  # Cross-origin requests need "none" in production
 
         # Set the auth cookie on the redirect response
         redirect_response.set_cookie(
             key="auth_token",
             value=token_str,
             httponly=True,
-            secure=os.getenv("ENVIRONMENT") == "production",  # Use secure cookies in production
-            samesite="lax",
+            secure=secure_cookie,
+            samesite=samesite_setting,
             max_age=60 * 60 * 24 * 7,
         )
 
@@ -493,7 +525,7 @@ async def auth_callback(
 
     except Exception as e:
         logger.error(f"OAuth error: {str(e)}")
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        frontend_url = os.getenv("FRONTEND_URL", "https://hackathon2-todo-app-three.vercel.app")
         from fastapi.responses import RedirectResponse
         redirect_response = RedirectResponse(url=f"{frontend_url}/auth/sign-in?error=OAuth failed")
 

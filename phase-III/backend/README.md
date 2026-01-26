@@ -1,3 +1,10 @@
+---
+title: chatbot
+sdk: docker
+emoji: 🚀
+colorFrom: purple
+colorTo: pink
+---
 # Todo Backend
 
 FastAPI backend for Phase II Full-Stack Todo Application.

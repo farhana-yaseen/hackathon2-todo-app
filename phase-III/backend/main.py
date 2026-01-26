@@ -10,8 +10,24 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from fastapi.responses import JSONResponse
+
+# Import ProxyHeadersMiddleware with fallback for different Starlette versions
+try:
+    from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
+except ImportError:
+    # If ProxyHeadersMiddleware is not available, define a minimal replacement
+    from starlette.middleware.base import BaseHTTPMiddleware
+
+    class ProxyHeadersMiddleware(BaseHTTPMiddleware):
+        def __init__(self, app, trusted_hosts="*"):
+            super().__init__(app)
+            self.trusted_hosts = trusted_hosts
+
+        async def dispatch(self, request, call_next):
+            # Minimal implementation that just passes through the request
+            response = await call_next(request)
+            return response
 
 # Configure logging
 logging.basicConfig(
@@ -46,7 +62,8 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",  # Next.js default port
     "http://127.0.0.1:3000",
-    "hackathon2-todo-app-three.vercel.app"
+    "https://hackathon2-todo-app-three.vercel.app",  # Your Vercel deployment
+    "https://zunifarha-phase-iii-chatbot.hf.space",  # Hugging Face Space (for same-origin requests)
 ]
 
 app.add_middleware(
@@ -58,10 +75,18 @@ app.add_middleware(
 )
 
 # Add ProxyHeadersMiddleware to handle reverse proxy headers (important for HTTPS detection behind Hugging Face Spaces)
+# This ensures that X-Forwarded-* headers are properly trusted and used to determine the original request
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
-# Add SessionMiddleware for OAuth
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "default-session-secret-change-in-production"))
+# Add SessionMiddleware for OAuth with proper configuration for reverse proxy environments
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET", "default-session-secret-change-in-production"),
+    session_cookie="session",
+    max_age=60 * 60 * 24 * 7,  # 7 days
+    same_site="lax",
+    https_only=os.getenv("ENVIRONMENT") == "production"  # Use secure cookies in production
+)
 
 
 # Exception handlers

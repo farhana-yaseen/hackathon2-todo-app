@@ -93,7 +93,9 @@ class AuthenticatedUser(BaseModel):
 async def get_current_user(request: Request) -> AuthenticatedUser:
     """Dependency that extracts and validates JWT token from request.
 
-    Expects Authorization header: Bearer <token>
+    Checks in order:
+    1. Authorization header: Bearer <token>
+    2. auth_token cookie
 
     Args:
         request: FastAPI request object
@@ -105,24 +107,24 @@ async def get_current_user(request: Request) -> AuthenticatedUser:
         HTTPException: 401 if token is missing or invalid
     """
     authorization: Optional[str] = request.headers.get("Authorization")
+    token = None
 
-    if not authorization:
+    # Try to get token from Authorization header first
+    if authorization and authorization.startswith("Bearer"):
+        parts = authorization.split()
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            token = parts[1]
+
+    # If no token in header, try to get from cookies
+    if not token:
+        token = request.cookies.get("auth_token")
+
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing authorization header",
+            detail="Missing authorization header or auth_token cookie",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    # Extract token from "Bearer <token>" format
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header format. Expected: Bearer <token>",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    token = parts[1]
 
     try:
         # Decode JWT token using the shared secret
