@@ -118,6 +118,16 @@ export const ChatComponent = () => {
         // Reload conversations to include the new one
         loadConversations(user.id);
       }
+
+      // Check if the response indicates a task was created/updated/deleted and notify the main page
+      if (response.tool_calls_executed &&
+          (response.response.toLowerCase().includes("task") ||
+           response.response.toLowerCase().includes("created") ||
+           response.response.toLowerCase().includes("updated") ||
+           response.response.toLowerCase().includes("deleted"))) {
+        // Dispatch a custom event to notify other components that tasks may have changed
+        window.dispatchEvent(new CustomEvent("tasksUpdated", { detail: { source: "chat" } }));
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
 

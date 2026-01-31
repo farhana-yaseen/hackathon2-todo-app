@@ -7,6 +7,7 @@ import { TaskList } from "@/components/TaskList";
 import { CalendarView } from "@/components/CalendarView";
 import { DashboardStats } from "@/components/DashboardStats";
 import { ChatComponent } from "@/components/ChatComponent";
+import { TaskWebSocketClient } from "@/components/TaskWebSocketClient";
 import { api, Task, StatsResponse } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth-client";
 import { exportTasksToCSV } from "@/lib/csv-export";
@@ -106,9 +107,16 @@ export default function Home() {
 
     window.addEventListener("authStateChanged", handleAuthChange);
 
+    // Listen for task updates from other components (e.g., chatbot)
+    const handleTaskUpdate = () => {
+      fetchTasks();
+    };
+    window.addEventListener("tasksUpdated", handleTaskUpdate);
+
     // Clean up event listener on unmount
     return () => {
       window.removeEventListener("authStateChanged", handleAuthChange);
+      window.removeEventListener("tasksUpdated", handleTaskUpdate);
     };
   }, []);
 
@@ -288,6 +296,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* WebSocket client for real-time task updates */}
+      <TaskWebSocketClient onTaskUpdate={fetchTasks} />
 
       {/* AI Chat Component */}
       <ChatComponent />

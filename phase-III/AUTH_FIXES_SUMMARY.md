@@ -13,10 +13,13 @@ Successfully tested and verified all authentication fixes for the FastAPI applic
   - `samesite="none"` (required for cross-origin requests)
 - **Verification**: Test shows "HttpOnly attribute present", "Secure attribute present", and "SameSite=None attribute present"
 
-### 2. Mixed Authentication Systems
-- **Problem**: The app used both SessionMiddleware and JWT tokens in cookies, causing inconsistent authentication behavior
-- **Solution**: Removed SessionMiddleware from main.py since the app properly uses JWT-based authentication
-- **Verification**: Backend is running without SessionMiddleware conflicts
+### 2. Mixed Authentication Systems (Adjusted Solution)
+- **Problem**: Initially tried to remove SessionMiddleware entirely, but OAuth functionality (Google/GitHub login) requires it for state management
+- **Revised Solution**: Kept SessionMiddleware but configured it properly for cross-domain requests with security in mind:
+  - Uses separate session cookie ("session") from auth token cookie ("auth_token")
+  - Configured with secure, httponly, and samesite="none" for cross-domain OAuth
+  - JWT tokens remain the primary authentication method for API endpoints
+- **Verification**: OAuth flow now works properly with secure session management
 
 ### 3. OAuth Token Passed in URL Security Issue
 - **Problem**: OAuth callback sent JWT in query params, causing token leaks and auth desync
@@ -37,7 +40,7 @@ Successfully tested and verified all authentication fixes for the FastAPI applic
 ## Files Modified
 
 - `backend/routes/auth.py`: Updated cookie settings for all auth endpoints and OAuth callback
-- `backend/main.py`: Removed SessionMiddleware configuration and import
+- `backend/main.py`: Updated to keep SessionMiddleware but with proper cross-domain configuration for OAuth; added import for SessionMiddleware
 - `frontend/app/auth/callback/[provider]/page.tsx`: Updated to fetch session token securely after redirect
 
 ## Conclusion
