@@ -71,8 +71,14 @@ export function Navbar() {
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center gap-6">
             <h1 className="text-xl font-bold text-gray-900">Todo App</h1>
+            <a
+              href="/"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors cursor-pointer"
+            >
+              Home
+            </a>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -105,12 +111,13 @@ export function Navbar() {
                 </span>
                 <a
                   href="/profile"
-                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                   title="Profile & Settings"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
+                  <span className="hidden sm:inline text-sm">Profile</span>
                 </a>
                 <button
                   onClick={handleSignOut}
