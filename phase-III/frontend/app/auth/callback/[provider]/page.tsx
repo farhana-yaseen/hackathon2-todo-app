@@ -1,34 +1,58 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { setAuthToken } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { api, setAuthToken } from "@/lib/api";
 
 export default function OAuthCallback() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const token = searchParams.get('token');
+    // Call the session endpoint to get the token after successful OAuth
+    const fetchSession = async () => {
+      try {
+        // Wait a moment to ensure the cookie is set by the redirect
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (token) {
-      // Store the token in sessionStorage for API calls
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('auth_token', token);
-        setAuthToken(token); // This will also store it in sessionStorage
+        // Explicitly call the session endpoint to get the token
+        const sessionResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/session`, {
+          credentials: 'include'
+        });
+
+        if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json();
+          const token = sessionData.token;
+
+          if (token) {
+            // Store the token in sessionStorage for API calls
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('auth_token', token);
+              setAuthToken(token); // This will also store it in sessionStorage
+            }
+
+            // Dispatch a custom event to notify other components about the auth state change
+            window.dispatchEvent(new Event('storage'));
+
+            // Redirect to home page
+            router.push('/');
+            router.refresh();
+          } else {
+            // If no token, redirect to sign-in with error
+            router.push('/auth/sign-in?error=Authentication failed');
+          }
+        } else {
+          // If session fetch fails, redirect to sign-in with error
+          router.push('/auth/sign-in?error=Authentication failed');
+        }
+      } catch (error) {
+        console.error('OAuth session fetch failed:', error);
+        // If session fetch fails, redirect to sign-in with error
+        router.push('/auth/sign-in?error=Authentication failed');
       }
+    };
 
-      // Dispatch a custom event to notify other components about the auth state change
-      window.dispatchEvent(new Event('storage'));
-
-      // Redirect to home page
-      router.push('/');
-      router.refresh();
-    } else {
-      // If no token, redirect to sign-in with error
-      router.push('/auth/sign-in?error=Authentication failed');
-    }
-  }, [searchParams, router]);
+    fetchSession();
+  }, [router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">

@@ -284,18 +284,13 @@ async def sign_up(
     # but normally we might wait for verification)
     token = create_access_token(user.id, user.email, user.name)
 
-    # Determine cookie settings based on environment
-    is_production = os.getenv("ENVIRONMENT") == "production"
-    secure_cookie = is_production
-    samesite_setting = "none" if is_production else "lax"  # Cross-origin requests need "none" in production
-
-    # Set cookie
+    # Set cookie with consistent cross-domain settings
     response.set_cookie(
         key="auth_token",
         value=token,
         httponly=True,
-        secure=secure_cookie,
-        samesite=samesite_setting,
+        secure=True,  # Always use secure in production environments
+        samesite="none",  # Required for cross-origin requests
         max_age=60 * 60 * 24 * 7,
     )
     return SignUpResponse(
@@ -369,18 +364,13 @@ async def sign_in(
         user.name,
     )
 
-    # Determine cookie settings based on environment
-    is_production = os.getenv("ENVIRONMENT") == "production"
-    secure_cookie = is_production
-    samesite_setting = "none" if is_production else "lax"  # Cross-origin requests need "none" in production
-
-    # Set cookie
+    # Set cookie with consistent cross-domain settings
     response.set_cookie(
         key="auth_token",
         value=token,
         httponly=True,
-        secure=secure_cookie,
-        samesite=samesite_setting,
+        secure=True,  # Always use secure in production environments
+        samesite="none",  # Required for cross-origin requests
         max_age=60 * 60 * 24 * 7,
     )
 
@@ -397,16 +387,11 @@ async def sign_in(
 @router.post("/sign-out")
 async def sign_out(response: Response):
     """Clear the session cookie."""
-    # Determine cookie settings based on environment for consistency
-    is_production = os.getenv("ENVIRONMENT") == "production"
-    secure_cookie = is_production
-    samesite_setting = "none" if is_production else "lax"
-
     response.delete_cookie(
         key="auth_token",
         httponly=True,
-        secure=secure_cookie,
-        samesite=samesite_setting,
+        secure=True,  # Always use secure in production environments
+        samesite="none",  # Required for cross-origin requests
     )
     return {"message": "Signed out successfully"}
 
@@ -502,22 +487,17 @@ async def auth_callback(
 
         # Redirect to frontend - use your Vercel URL
         frontend_url = os.getenv("FRONTEND_URL", "https://hackathon2-todo-app-three.vercel.app")
-        # Pass token in query param so frontend can catch it and store it
+        # Redirect without token in URL - frontend will call /api/auth/session to get the token
         from fastapi.responses import RedirectResponse
-        redirect_response = RedirectResponse(url=f"{frontend_url}/auth/callback/{provider}?token={token_str}")
+        redirect_response = RedirectResponse(url=f"{frontend_url}/auth/callback/{provider}")
 
-        # Determine cookie settings based on environment
-        is_production = os.getenv("ENVIRONMENT") == "production"
-        secure_cookie = is_production
-        samesite_setting = "none" if is_production else "lax"  # Cross-origin requests need "none" in production
-
-        # Set the auth cookie on the redirect response
+        # Set the auth cookie on the redirect response with consistent cross-domain settings
         redirect_response.set_cookie(
             key="auth_token",
             value=token_str,
             httponly=True,
-            secure=secure_cookie,
-            samesite=samesite_setting,
+            secure=True,  # Always use secure in production environments
+            samesite="none",  # Required for cross-origin requests
             max_age=60 * 60 * 24 * 7,
         )
 

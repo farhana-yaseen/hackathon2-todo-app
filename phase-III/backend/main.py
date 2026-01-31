@@ -9,7 +9,6 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
 
 # Import ProxyHeadersMiddleware with fallback for different Starlette versions
@@ -78,15 +77,6 @@ app.add_middleware(
 # This ensures that X-Forwarded-* headers are properly trusted and used to determine the original request
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
-# Add SessionMiddleware for OAuth with proper configuration for reverse proxy environments
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=os.getenv("SESSION_SECRET", "default-session-secret-change-in-production"),
-    session_cookie="session",
-    max_age=60 * 60 * 24 * 7,  # 7 days
-    same_site="lax",
-    https_only=os.getenv("ENVIRONMENT") == "production"  # Use secure cookies in production
-)
 
 
 # Exception handlers
