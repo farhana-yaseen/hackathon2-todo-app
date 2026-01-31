@@ -144,8 +144,12 @@ export function TaskForm({ onTaskCreated, editingTask, onCancelEdit }: TaskFormP
             type="datetime-local"
             id="due_date"
             value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border"
+            onChange={(e) => {
+              setDueDate(e.target.value);
+              // Blur the input to help close the datetime picker after selection
+              e.target.blur();
+            }}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border cursor-pointer"
           />
         </div>
 

@@ -337,18 +337,35 @@ class ChatService:
                     continue  # Continue to next tool call
 
                 if task:
-                    # For delete operations, we'll return the task details for confirmation
-                    # The actual deletion will be handled in the main chat method
+                    # Store task data before deletion to broadcast
+                    task_data = {
+                        "id": task.id,
+                        "user_id": task.user_id,
+                        "title": task.title,
+                        "description": task.description,
+                        "completed": task.completed,
+                        "due_date": task.due_date.isoformat() if task.due_date else None,
+                        "reminder_enabled": task.reminder_enabled,
+                        "category": task.category,
+                        "created_at": task.created_at.isoformat(),
+                        "updated_at": task.updated_at.isoformat()
+                    }
+
+                    # Actually perform the deletion
+                    session.delete(task)
+                    session.commit()
+
+                    # Broadcast the task deletion to connected clients
+                    await broadcast_task_update(
+                        user_id,
+                        "task_deleted",
+                        task_data
+                    )
+
                     results.append({
                         "call": tool_call,
                         "outputs": [{
-                            "result": f"Task found: '{task.title}' (ID: {task.id}). Deletion requires confirmation. Please confirm with a yes/delete message.",
-                            "task_details": {
-                                "id": task.id,
-                                "title": task.title,
-                                "description": task.description,
-                                "confirmed_for_deletion": False
-                            }
+                            "result": f"Task '{task.title}' (ID: {task.id}) has been deleted successfully."
                         }]
                     })
                 else:

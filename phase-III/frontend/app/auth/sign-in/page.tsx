@@ -115,7 +115,7 @@ export default function SignInPage() {
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               onClick={() => handleSocialLogin("google")}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer"
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -140,7 +140,7 @@ export default function SignInPage() {
 
             <button
               onClick={() => handleSocialLogin("github")}
-              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+              className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer"
             >
               <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                 <path
