@@ -1,8 +1,8 @@
-# Todo App - Phase III
-A full-stack todo application with advanced features: user authentication, real-time synchronization, and AI chatbot integration.
+# Todo App - Phase IV
+A full-stack todo application with advanced features: user authentication, real-time synchronization, AI chatbot integration, and enhanced security.
 
 ## Project Overview
-This is a monorepo containing a Next.js 14 frontend and FastAPI backend, following spec-driven development practices with GitHub Spec-Kit. Phase III introduces AI-powered task management through an integrated chatbot with real-time updates and enhanced authentication.
+This is a monorepo containing a Next.js 14 frontend and FastAPI backend, following spec-driven development practices with GitHub Spec-Kit. Phase IV introduces AI-powered task management through an integrated chatbot with real-time updates.
 
 ## Tech Stack
 
@@ -37,13 +37,12 @@ This is a monorepo containing a Next.js 14 frontend and FastAPI backend, followi
 - Cross-domain authentication support
 - Email verification and password reset
 - Conversation history with AI assistant
-- Advanced authentication fixes for cross-domain requests
-- Secure cookie handling with proper SameSite and Secure attributes
+- Task categorization and filtering
 
 ## Project Structure
 
 ```
-phase-III/
+phase-IV/
 ├── frontend/          # Next.js application
 │   ├── app/          # Next.js pages and layouts
 │   ├── components/   # Reusable UI components
@@ -137,7 +136,6 @@ docker-compose up
 - Natural language task management through the integrated chatbot
 - Conversational interface for creating, updating, and managing tasks
 - Context-aware responses based on user's task history
-- Tool calling capabilities for task operations
 
 ### Real-time Updates
 - WebSocket-based real-time synchronization
@@ -149,13 +147,6 @@ docker-compose up
 - OAuth integration with Google and GitHub
 - Email verification and secure password reset
 - Session management with proper security headers
-- Fixed SameSite="none" and Secure=True cookie attributes for cross-origin requests
-
-### Database & Conversation Management
-- Conversation history persistence
-- Message threading with role-based organization
-- User isolation for conversation data
-- Efficient indexing for conversation queries
 
 ## Development Guidelines
 
@@ -250,7 +241,6 @@ Once the backend is running, visit:
 - **Database**: Ensure PostgreSQL is running before starting the backend
 - **API URL**: Update `NEXT_PUBLIC_API_URL` in frontend `.env.local` if backend runs on different port
 - **Security**: All authentication cookies are configured for cross-domain requests with proper security attributes
-- **Phase III Focus**: This phase specifically addresses AI chatbot integration, real-time updates, and authentication fixes
 
 ## License
 

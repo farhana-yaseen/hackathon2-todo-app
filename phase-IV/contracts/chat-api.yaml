@@ -1,0 +1,207 @@
+# API Contracts: AI Chatbot
+
+## OpenAPI Specification
+
+### Chat Endpoint
+```
+POST /api/{user_id}/chat
+```
+
+#### Description
+Main chat endpoint that handles conversation with the AI assistant. Processes user input and returns AI response, with ability to call backend tools for task management.
+
+#### Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| user_id | path | string | Yes | User ID from JWT token (verified to match authenticated user) |
+| conversation_id | body | integer | Yes | ID of the conversation to continue (use 0 for new conversation) |
+| message | body | string | Yes | User's message to the AI assistant |
+
+#### Request Body
+```json
+{
+  "conversation_id": 123,
+  "message": "Add a task to buy groceries"
+}
+```
+
+#### Response Body (Success 200)
+```json
+{
+  "conversation_id": 123,
+  "message_id": 456,
+  "response": "I've added a task to buy groceries for you.",
+  "tool_calls": [
+    {
+      "name": "add_task",
+      "arguments": {
+        "title": "Buy groceries",
+        "description": "Grocery shopping list"
+      }
+    }
+  ]
+}
+```
+
+#### Response Body (Error 401)
+```json
+{
+  "detail": "Missing authorization header"
+}
+```
+
+#### Response Body (Error 403)
+```json
+{
+  "detail": "User ID mismatch: authenticated user does not match requested user_id"
+}
+```
+
+#### Response Body (Error 404)
+```json
+{
+  "detail": "Conversation not found"
+}
+```
+
+### List Conversations Endpoint
+```
+GET /api/{user_id}/conversations
+```
+
+#### Description
+Lists all conversations for the authenticated user.
+
+#### Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| user_id | path | string | Yes | User ID from JWT token (verified to match authenticated user) |
+
+#### Response Body (Success 200)
+```json
+{
+  "conversations": [
+    {
+      "id": 123,
+      "title": "Task management help",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:45:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+### Get Conversation Messages Endpoint
+```
+GET /api/{user_id}/conversations/{conversation_id}/messages
+```
+
+#### Description
+Retrieves all messages in a specific conversation.
+
+#### Parameters
+| Name | Location | Type | Required | Description |
+|------|----------|------|----------|-------------|
+| user_id | path | string | Yes | User ID from JWT token |
+| conversation_id | path | integer | Yes | ID of the conversation |
+
+#### Response Body (Success 200)
+```json
+{
+  "messages": [
+    {
+      "id": 456,
+      "role": "user",
+      "content": "Add a task to buy groceries",
+      "created_at": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": 457,
+      "role": "assistant",
+      "content": "I've added a task to buy groceries for you.",
+      "created_at": "2024-01-15T10:30:05Z"
+    }
+  ],
+  "total": 2
+}
+```
+
+## Tool Contracts
+
+### add_task Tool
+```json
+{
+  "name": "add_task",
+  "description": "Add a new task to the user's task list",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "title": {"type": "string", "description": "Title of the task"},
+      "description": {"type": "string", "description": "Description of the task (optional)"}
+    },
+    "required": ["title"]
+  }
+}
+```
+
+### list_tasks Tool
+```json
+{
+  "name": "list_tasks",
+  "description": "List tasks from the user's task list with optional status filter",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "status": {"type": "string", "enum": ["all", "pending", "completed"], "description": "Filter tasks by status (optional)"}
+    }
+  }
+}
+```
+
+### complete_task Tool
+```json
+{
+  "name": "complete_task",
+  "description": "Mark a task as completed",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "task_id": {"type": "integer", "description": "ID of the task to complete"}
+    },
+    "required": ["task_id"]
+  }
+}
+```
+
+### delete_task Tool
+```json
+{
+  "name": "delete_task",
+  "description": "Delete a task from the user's task list",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "task_id": {"type": "integer", "description": "ID of the task to delete"}
+    },
+    "required": ["task_id"]
+  }
+}
+```
+
+### update_task Tool
+```json
+{
+  "name": "update_task",
+  "description": "Update a task in the user's task list",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "task_id": {"type": "integer", "description": "ID of the task to update"},
+      "title": {"type": "string", "description": "New title for the task (optional)"},
+      "description": {"type": "string", "description": "New description for the task (optional)"}
+    },
+    "required": ["task_id"]
+  }
+}
+```
