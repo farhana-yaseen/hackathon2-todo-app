@@ -1,0 +1,108 @@
+# Production environment values for todo-app
+
+backend:
+  image:
+    repository: backend
+    tag: v1
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 8000
+  replicaCount: 3  # Increased for production high availability
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+  hpa:
+    enabled: true
+    minReplicas: 3  # Minimum 3 for production availability
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  env:
+    - name: ENVIRONMENT
+      value: "production"
+    - name: LOG_LEVEL
+      value: "info"
+
+frontend:
+  image:
+    repository: frontend
+    tag: v1
+    pullPolicy: Always
+  service:
+    type: LoadBalancer  # Changed for production external access
+    port: 3000
+  replicaCount: 3  # Increased for production high availability
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
+    limits:
+      memory: 512Mi
+      cpu: 500m
+  hpa:
+    enabled: true
+    minReplicas: 3  # Minimum 3 for production availability
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+  env:
+    - name: NODE_ENV
+      value: "production"
+    - name: NEXT_PUBLIC_NODE_ENV
+      value: "production"
+
+secrets:
+  # In production, these should be provided via external secret management
+  # For demonstration purposes, placeholder values are shown
+  databaseUrl: ""  # Should be provided via external secret management
+  cohereApiKey: "" # Should be provided via external secret management
+  betterAuthSecret: "" # Should be provided via external secret management
+
+config:
+  backendServiceUrl: "http://backend-service:8000"
+  nextPublicApiUrl: "http://backend-service:8000"
+
+# Production-specific configurations
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod security context
+podSecurityContext: {}
+securityContext: {}
+
+# Service monitoring and health checks
+serviceMonitor:
+  enabled: false
+
+# Ingress configuration for production
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: todo-app.example.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# Production logging and monitoring
+rbac:
+  create: true
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Resource optimization for production
+tolerations: []
+affinity: {}
