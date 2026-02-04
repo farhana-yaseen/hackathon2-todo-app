@@ -58,17 +58,10 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Configure CORS for frontend
-origins = [
-    "http://localhost:3000",  # Next.js default port
-    "http://127.0.0.1:3000",
-    "https://hackathon2-todo-app-three.vercel.app",  # Your Vercel deployment
-    "https://zunifarha-phase-iii-chatbot.hf.space",  # Hugging Face Space (for same-origin requests)
-]
-
+# Configure CORS for frontend - Allow all origins in Kubernetes environment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins for Kubernetes internal communication
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

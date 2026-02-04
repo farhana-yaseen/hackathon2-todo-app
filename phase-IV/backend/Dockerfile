@@ -5,15 +5,16 @@ FROM python:3.13-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    PORT=7860
+    PORT=8000
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including libpq-dev for PostgreSQL
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file
@@ -29,8 +30,8 @@ RUN pip install .
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port Hugging Face expects (7860)
-EXPOSE 7860
+# Expose port 8000 for FastAPI
+EXPOSE 8000
 
 # Create a non-root user for security
 RUN adduser --disabled-password --gecos '' appuser
@@ -38,4 +39,4 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Define the command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
